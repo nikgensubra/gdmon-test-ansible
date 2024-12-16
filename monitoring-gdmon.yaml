@@ -40,13 +40,15 @@
         msg: "Spazio su disco:\n{{ disk_space.stdout }}"
 
     # 5. Verifica versione del sistema operativo
-    - name: Controllo della versione del sistema operativo
-      command: cat /etc/os-release
-      register: os_version
+    - name: Verifica della distribuzione e versione tramite /etc/os-release
+        tasks:
+          - name: Leggi informazioni dal file /etc/os-release
+            command: cat /etc/os-release
+            register: os_info
 
-    - name: Mostra la versione del sistema operativo
+    - name: Mostra informazioni sul sistema operativo
       debug:
-        msg: "Versione OS:\n{{ os_version.stdout }}"
+        msg: "{{ os_info.stdout }}"
 
     # 6. Controllo stato di un servizio chiave (esempio: SSH)
     - name: Verifica stato del servizio SSH
