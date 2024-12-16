@@ -1,0 +1,29 @@
+---
+- name: Monitoraggio dei server Linux
+  hosts: all
+  become: yes
+  tasks:
+    - name: Verifica uptime
+      command: uptime
+      register: uptime_output
+    - name: Mostra uptime
+      debug:
+        msg: "Uptime: {{ uptime_output.stdout }}"
+
+    - name: Controllo spazio su disco
+      command: df -h
+      register: disk_space
+    - name: Mostra spazio su disco
+      debug:
+        msg: "Spazio su disco: {{ disk_space.stdout }}"
+
+    - name: Verifica utilizzo memoria
+      command: free -m
+      register: memory_info
+    - name: Mostra utilizzo memoria
+      debug:
+        msg: "Memoria: {{ memory_info.stdout }}"
+
+    - name: Mostra versione della distribuzione
+      debug:
+        msg: "Versione distribuzione:\n{{ distro_info.stdout }}"
