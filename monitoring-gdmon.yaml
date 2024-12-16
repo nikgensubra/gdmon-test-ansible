@@ -1,29 +1,61 @@
 ---
-- name: Monitoraggio dei server Linux
+- name: Verifica dello stato del server Linux
   hosts: all
   become: yes
   tasks:
-    - name: Verifica uptime
+    # 1. Verifica uptime
+    - name: Controllo del tempo di attività del server
       command: uptime
-      register: uptime_output
-    - name: Mostra uptime
-      debug:
-        msg: "Uptime: {{ uptime_output.stdout }}"
+      register: uptime_result
 
-    - name: Controllo spazio su disco
-      command: df -h
-      register: disk_space
-    - name: Mostra spazio su disco
+    - name: Mostra il tempo di attività
       debug:
-        msg: "Spazio su disco: {{ disk_space.stdout }}"
+        msg: "Uptime del server: {{ uptime_result.stdout }}"
 
-    - name: Verifica utilizzo memoria
-      command: free -m
-      register: memory_info
+    # 2. Verifica utilizzo CPU
+    - name: Controllo del carico della CPU
+      shell: cat /proc/loadavg | awk '{print $1, $2, $3}'
+      register: cpu_load
+
+    - name: Mostra il carico della CPU
+      debug:
+        msg: "Carico CPU (1m, 5m, 15m): {{ cpu_load.stdout }}"
+
+    # 3. Verifica utilizzo della memoria
+    - name: Controllo utilizzo memoria
+      shell: free -m | awk '/^Mem/ {print $3 "MB usati su " $2 "MB totali"}'
+      register: memory_usage
+
     - name: Mostra utilizzo memoria
       debug:
-        msg: "Memoria: {{ memory_info.stdout }}"
+        msg: "Utilizzo memoria: {{ memory_usage.stdout }}"
 
-    - name: Mostra versione della distribuzione
+    # 4. Verifica spazio su disco
+    - name: Controllo dello spazio su disco
+      shell: df -h --output=target,used,avail | grep '^/'
+      register: disk_space
+
+    - name: Mostra spazio su disco
       debug:
-        msg: "Versione distribuzione:\n{{ distro_info.stdout }}"
+        msg: "Spazio su disco:\n{{ disk_space.stdout }}"
+
+    # 5. Verifica versione del sistema operativo
+    - name: Controllo della versione del sistema operativo
+      command: cat /etc/os-release
+      register: os_version
+
+    - name: Mostra la versione del sistema operativo
+      debug:
+        msg: "Versione OS:\n{{ os_version.stdout }}"
+
+    # 6. Controllo stato di un servizio chiave (esempio: SSH)
+    - name: Verifica stato del servizio SSH
+      service:
+        name: ssh
+        state: started
+      register: ssh_status
+
+    - name: Mostra stato del servizio SSH
+      debug:
+        msg: "Stato del servizio SSH: {{ ssh_status }}"
+
